@@ -1,0 +1,6 @@
+{
+  "name": "CertificateFlow - Bulk Certificate Generator",
+  "description": "Generate professional certificates in bulk for events and courses with real-time tracking and ReportLab PDF engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

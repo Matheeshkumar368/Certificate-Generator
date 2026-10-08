@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+dist/
+venv/
+.venv/
+
+# Environment & Secrets
+.env
+.env.local
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Databases
+*.db
+backend/storage/*.db
+backend/storage/*.db-journal
+
+# Generated PDF Certificates
+backend/storage/certificates/*.pdf
+storage/certificates/*.pdf
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
