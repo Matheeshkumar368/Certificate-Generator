@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/certificateflow-readme-banner-fixed.gif" width="100%" />
+<img src="./assets/certificateflow-readme-banner.gif" width="100%" />
 
 # ✨ CertificateFlow
 
