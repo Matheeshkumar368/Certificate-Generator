@@ -1,5 +1,16 @@
 <div align="center">
 
+<img src="./assets/certificateflow-readme-banner.gif" width="100%" />
+
+# ✨ CertificateFlow
+
+### Bulk Certificate Generation Platform
+
+**Create • Customize • Generate • Track • Download**
+
+</div>
+<div align="center">
+
 # ✨ CertificateFlow
 
 ### Bulk Certificate Generation Platform
