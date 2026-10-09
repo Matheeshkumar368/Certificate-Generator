@@ -4,17 +4,17 @@ import {
   ArrowLeft,
   Copy,
   Check,
-  Award,
   Layers,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Calendar,
-  Building,
-  RefreshCw
+  RefreshCw,
+  FolderArchive,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getJob } from '../api/jobs';
+import { downloadJobCertificatesZip } from '../api/certificates';
 import { JobDetail, Certificate } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 import { CertificateTable } from '../components/CertificateTable';
@@ -29,6 +29,8 @@ export const JobDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [previewCert, setPreviewCert] = useState<Certificate | null>(null);
+  const [downloadingZip, setDownloadingZip] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const confettiFired = useRef(false);
 
   const fetchJob = async (showSpinner = false) => {
@@ -79,6 +81,19 @@ export const JobDetails: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadAllZip = async () => {
+    if (!job) return;
+    setDownloadingZip(true);
+    setDownloadError(null);
+    try {
+      await downloadJobCertificatesZip(job.id, job.event_name);
+    } catch (err: any) {
+      setDownloadError(err?.message || 'Failed to download ZIP archive of certificates.');
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
+
   if (loading) {
     return <LoadingState message="Loading job details..." />;
   }
@@ -102,6 +117,7 @@ export const JobDetails: React.FC = () => {
   }
 
   const isProcessing = job.status === 'PROCESSING' || job.status === 'PENDING';
+  const hasGeneratedCerts = job.certificates.some((c) => c.status === 'GENERATED');
   const progressPercent =
     job.total_recipients > 0
       ? ((job.successful_count + job.failed_count) / job.total_recipients) * 100
@@ -129,15 +145,47 @@ export const JobDetails: React.FC = () => {
                 : `View all certificates and their status for this job.`}
             </p>
           </div>
-          <button
-            onClick={() => fetchJob(false)}
-            className="self-start sm:self-auto p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
-            title="Refresh job status"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            {hasGeneratedCerts && !isProcessing && (
+              <button
+                onClick={handleDownloadAllZip}
+                disabled={downloadingZip}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs sm:text-sm font-semibold shadow-xs shadow-indigo-200 transition-all active:scale-95"
+              >
+                {downloadingZip ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FolderArchive className="w-4 h-4" />
+                )}
+                <span>{downloadingZip ? 'Preparing ZIP...' : 'Download All (ZIP)'}</span>
+              </button>
+            )}
+            <button
+              onClick={() => fetchJob(false)}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+              title="Refresh job status"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Visible Error Alert if ZIP Download Fails */}
+      {downloadError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <span className="font-medium">{downloadError}</span>
+          </div>
+          <button
+            onClick={() => setDownloadError(null)}
+            className="p-1 text-rose-500 hover:text-rose-800 rounded-lg"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Primary Status & Metadata Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -216,9 +264,13 @@ export const JobDetails: React.FC = () => {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                }`}>
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    job.status === 'COMPLETED'
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-amber-50 text-amber-600'
+                  }`}
+                >
                   {job.status === 'COMPLETED' ? (
                     <CheckCircle2 className="w-5 h-5" />
                   ) : (
@@ -227,7 +279,9 @@ export const JobDetails: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-sm font-bold text-slate-900">
-                    {job.status === 'COMPLETED' ? 'Batch Generation Complete' : 'Completed with Some Errors'}
+                    {job.status === 'COMPLETED'
+                      ? 'Batch Generation Complete'
+                      : 'Completed with Some Errors'}
                   </div>
                   <div className="text-xs text-slate-500">
                     All recipient jobs have completed processing.
@@ -290,9 +344,7 @@ export const JobDetails: React.FC = () => {
       {/* Certificates Breakdown Table */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight">
-            Certificates
-          </h3>
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight">Certificates</h3>
           <span className="text-xs text-slate-500 font-medium">
             {job.certificates.length} Total records
           </span>
@@ -315,6 +367,7 @@ export const JobDetails: React.FC = () => {
         eventName={job.event_name}
         eventDate={job.event_date}
         organization={job.organization}
+        templateConfig={job.template_config}
       />
     </div>
   );

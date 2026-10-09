@@ -1,13 +1,13 @@
-export type JobStatus = 
-  | 'PENDING' 
-  | 'PROCESSING' 
-  | 'COMPLETED' 
-  | 'COMPLETED_WITH_ERRORS' 
+export type JobStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'COMPLETED_WITH_ERRORS'
   | 'FAILED';
 
-export type CertificateStatus = 
-  | 'PENDING' 
-  | 'GENERATED' 
+export type CertificateStatus =
+  | 'PENDING'
+  | 'GENERATED'
   | 'FAILED';
 
 export interface Recipient {
@@ -19,7 +19,8 @@ export interface Recipient {
 
 export interface TemplateElement {
   id: string;
-  type: 'text' | 'shape' | 'image' | 'logo' | 'signature' | 'line';
+  type: 'text' | 'shape' | 'image' | 'logo' | 'signature' | 'line' | 'seal';
+  label?: string;
   x: number;
   y: number;
   width: number;
@@ -36,9 +37,10 @@ export interface TemplateElement {
   color?: string;
   alignment?: 'left' | 'center' | 'right';
   lineHeight?: number;
+  idDisplayFormat?: 'full' | 'short';
 
   // Shape attributes
-  shapeType?: 'rectangle' | 'circle' | 'line';
+  shapeType?: 'rectangle' | 'circle' | 'line' | 'seal';
   fillColor?: string;
   strokeColor?: string;
   strokeWidth?: number;
@@ -50,7 +52,9 @@ export interface TemplateElement {
 export interface TemplateConfig {
   background: string;
   gradient?: string;
-  borderStyle: string; // classic_gold, modern_minimal, corporate_blue, elegant_black, academic, creative_gradient, none
+  borderStyle: string; // classic_gold, modern_minimal, corporate_blue, elegant_black, academic, creative_gradient, orange_modern, none
+  canvas_width?: number;
+  canvas_height?: number;
   elements: TemplateElement[];
 }
 
@@ -95,6 +99,7 @@ export interface Certificate {
 }
 
 export interface JobDetail extends Job {
+  template_config?: TemplateConfig;
   certificates: Certificate[];
 }
 

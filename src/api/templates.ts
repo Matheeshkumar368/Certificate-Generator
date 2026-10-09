@@ -1,13 +1,12 @@
 import { apiClient } from './client';
-import { Template, TemplateConfig } from '../types';
-
-const TEMPLATES_STORAGE_KEY = 'certificateflow_templates_cache';
+import { Template } from '../types';
 
 export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-classic-gold-01',
     name: 'Classic Gold',
-    description: 'Timeless traditional certificate with double navy and gold ornamental borders and official seal.',
+    description:
+      'Timeless traditional certificate with double navy and gold ornamental borders and official seal.',
     category: 'Classic',
     orientation: 'landscape',
     canvas_width: 800,
@@ -18,9 +17,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#FCFBF9',
       borderStyle: 'classic_gold',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-org',
+          label: 'Organization Name',
           type: 'text',
           text: '{{organization}}',
           x: 100,
@@ -36,6 +38,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title',
+          label: 'Certificate Title',
           type: 'text',
           text: 'CERTIFICATE OF PARTICIPATION',
           x: 80,
@@ -51,6 +54,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-intro',
+          label: 'Presentation Intro',
           type: 'text',
           text: 'This is proudly presented to certify that',
           x: 100,
@@ -66,12 +70,13 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-recipient',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 80,
-          y: 190,
+          y: 188,
           width: 640,
-          height: 45,
+          height: 48,
           fontFamily: 'Helvetica',
           fontSize: 32,
           fontWeight: 'bold',
@@ -81,12 +86,13 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-line-rec',
+          label: 'Recipient Underline',
           type: 'shape',
           shapeType: 'line',
           x: 220,
-          y: 245,
+          y: 242,
           width: 360,
-          height: 2,
+          height: 6,
           fillColor: '#D97706',
           strokeColor: '#D97706',
           strokeWidth: 2,
@@ -94,10 +100,11 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-stmt',
+          label: 'Participation Statement',
           type: 'text',
           text: 'has successfully participated in the program',
           x: 100,
-          y: 260,
+          y: 258,
           width: 600,
           height: 25,
           fontFamily: 'Times-Roman',
@@ -109,12 +116,13 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-event',
+          label: 'Event Name',
           type: 'text',
           text: '{{event_name}}',
           x: 80,
-          y: 295,
+          y: 292,
           width: 640,
-          height: 35,
+          height: 36,
           fontFamily: 'Helvetica',
           fontSize: 20,
           fontWeight: 'bold',
@@ -124,12 +132,13 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-date-conduct',
+          label: 'Event Date Line',
           type: 'text',
           text: 'conducted on {{event_date}}',
           x: 100,
-          y: 335,
+          y: 334,
           width: 600,
-          height: 22,
+          height: 24,
           fontFamily: 'Helvetica',
           fontSize: 12,
           color: '#64748B',
@@ -137,43 +146,111 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
           zIndex: 2,
         },
         {
-          id: 'el-cid',
+          id: 'el-cid-label',
+          label: 'Certificate ID Label',
           type: 'text',
-          text: 'Certificate ID: {{certificate_id}}',
+          text: 'CERTIFICATE ID',
           x: 55,
-          y: 485,
+          y: 455,
+          width: 240,
+          height: 18,
+          fontFamily: 'Helvetica',
+          fontSize: 9,
+          fontWeight: 'bold',
+          color: '#64748B',
+          alignment: 'left',
+          zIndex: 2,
+        },
+        {
+          id: 'el-cid',
+          label: 'Certificate ID Value',
+          type: 'text',
+          text: '{{certificate_id}}',
+          x: 55,
+          y: 473,
           width: 260,
           height: 20,
           fontFamily: 'Courier',
           fontSize: 10,
+          fontWeight: 'bold',
+          color: '#0F172A',
+          alignment: 'left',
+          idDisplayFormat: 'full',
+          zIndex: 2,
+        },
+        {
+          id: 'el-issue-label',
+          label: 'Issue Date Label',
+          type: 'text',
+          text: 'ISSUE DATE',
+          x: 55,
+          y: 496,
+          width: 240,
+          height: 18,
+          fontFamily: 'Helvetica',
+          fontSize: 9,
+          fontWeight: 'bold',
           color: '#64748B',
           alignment: 'left',
           zIndex: 2,
         },
         {
           id: 'el-issue',
+          label: 'Issue Date Value',
           type: 'text',
-          text: 'Issue Date: {{issue_date}}',
+          text: '{{issue_date}}',
           x: 55,
-          y: 505,
-          width: 260,
+          y: 514,
+          width: 240,
           height: 20,
           fontFamily: 'Helvetica',
           fontSize: 10,
-          color: '#64748B',
+          color: '#334155',
           alignment: 'left',
           zIndex: 2,
         },
         {
+          id: 'el-seal',
+          label: 'Official Gold Seal',
+          type: 'shape',
+          shapeType: 'seal',
+          x: 368,
+          y: 455,
+          width: 64,
+          height: 64,
+          fillColor: '#D97706',
+          strokeColor: '#FEF3C7',
+          strokeWidth: 2,
+          zIndex: 3,
+        },
+        {
+          id: 'el-sig-script',
+          label: 'Signature Script',
+          type: 'signature',
+          text: 'Authorized Signatory',
+          x: 530,
+          y: 450,
+          width: 210,
+          height: 32,
+          fontFamily: 'Times-Roman',
+          fontSize: 16,
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          color: '#1E3A8A',
+          alignment: 'center',
+          zIndex: 3,
+        },
+        {
           id: 'el-sig',
+          label: 'Signatory Title',
           type: 'text',
           text: 'Authorized Signatory\n{{organization}}',
           x: 520,
-          y: 480,
+          y: 486,
           width: 230,
           height: 40,
           fontFamily: 'Helvetica',
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 'bold',
           color: '#0F172A',
           alignment: 'center',
@@ -185,7 +262,8 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-modern-minimal-02',
     name: 'Modern Minimal',
-    description: 'Sleek contemporary design with emerald accent line, airy typography, and high legibility.',
+    description:
+      'Sleek contemporary design with emerald accent line, airy typography, and high legibility.',
     category: 'Modern',
     orientation: 'landscape',
     canvas_width: 800,
@@ -196,9 +274,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#FFFFFF',
       borderStyle: 'modern_minimal',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-bar',
+          label: 'Accent Sidebar',
           type: 'shape',
           shapeType: 'rectangle',
           x: 0,
@@ -212,6 +293,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-org-m',
+          label: 'Organization',
           type: 'text',
           text: '{{organization}}',
           x: 65,
@@ -227,6 +309,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title-m',
+          label: 'Title',
           type: 'text',
           text: 'CERTIFICATE OF COMPLETION',
           x: 65,
@@ -242,6 +325,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-intro-m',
+          label: 'Intro Text',
           type: 'text',
           text: 'This certificate is officially presented to',
           x: 65,
@@ -256,6 +340,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-rec-m',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 65,
@@ -271,6 +356,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-desc-m',
+          label: 'Completion Statement',
           type: 'text',
           text: 'in recognition of successful completion and mastery of {{event_name}}, conducted on {{event_date}}.',
           x: 65,
@@ -285,21 +371,40 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
           zIndex: 2,
         },
         {
-          id: 'el-meta-m',
+          id: 'el-cid-label-m',
+          label: 'Certificate ID Label',
           type: 'text',
-          text: 'Credential ID: {{certificate_id}}  •  Issued: {{issue_date}}',
+          text: 'CREDENTIAL ID',
           x: 65,
-          y: 490,
-          width: 450,
-          height: 22,
-          fontFamily: 'Courier',
-          fontSize: 10,
+          y: 472,
+          width: 240,
+          height: 18,
+          fontFamily: 'Helvetica',
+          fontSize: 9,
+          fontWeight: 'bold',
           color: '#94A3B8',
           alignment: 'left',
           zIndex: 2,
         },
         {
+          id: 'el-meta-m',
+          label: 'Certificate ID Value',
+          type: 'text',
+          text: '{{certificate_id}}',
+          x: 65,
+          y: 490,
+          width: 300,
+          height: 22,
+          fontFamily: 'Courier',
+          fontSize: 10,
+          color: '#475569',
+          alignment: 'left',
+          idDisplayFormat: 'full',
+          zIndex: 2,
+        },
+        {
           id: 'el-sig-m',
+          label: 'Signatory',
           type: 'text',
           text: 'Program Director\n{{organization}}',
           x: 540,
@@ -319,7 +424,8 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-corporate-blue-03',
     name: 'Corporate Blue',
-    description: 'High-authority enterprise design with deep cobalt headers, crisp geometric dividers, and dual verification lines.',
+    description:
+      'High-authority enterprise design with deep cobalt headers, crisp geometric dividers, and dual verification lines.',
     category: 'Corporate',
     orientation: 'landscape',
     canvas_width: 800,
@@ -330,9 +436,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#F8FAFC',
       borderStyle: 'corporate_blue',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-header-box',
+          label: 'Header Banner',
           type: 'shape',
           shapeType: 'rectangle',
           x: 25,
@@ -346,6 +455,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-org-c',
+          label: 'Organization',
           type: 'text',
           text: '{{organization}}',
           x: 45,
@@ -361,6 +471,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title-c',
+          label: 'Title',
           type: 'text',
           text: 'CERTIFICATE OF PROFESSIONAL EXCELLENCE',
           x: 45,
@@ -376,6 +487,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-certify-c',
+          label: 'Intro Text',
           type: 'text',
           text: 'This credential certifies that',
           x: 100,
@@ -390,6 +502,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-rec-c',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 60,
@@ -405,6 +518,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-for-c',
+          label: 'Statement',
           type: 'text',
           text: 'has demonstrated competence and achieved distinction in',
           x: 100,
@@ -419,6 +533,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-event-c',
+          label: 'Event Name',
           type: 'text',
           text: '{{event_name}}',
           x: 60,
@@ -434,10 +549,11 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-date-c',
+          label: 'Event Date',
           type: 'text',
-          text: 'Date of Certification: {{event_date}}  •  ID: {{certificate_id}}',
+          text: 'Date of Certification: {{event_date}}',
           x: 100,
-          y: 335,
+          y: 330,
           width: 600,
           height: 22,
           fontFamily: 'Helvetica',
@@ -447,7 +563,24 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
           zIndex: 2,
         },
         {
+          id: 'el-cid-c',
+          label: 'Certificate ID Value',
+          type: 'text',
+          text: 'ID: {{certificate_id}}',
+          x: 200,
+          y: 355,
+          width: 400,
+          height: 20,
+          fontFamily: 'Courier',
+          fontSize: 10,
+          color: '#64748B',
+          alignment: 'center',
+          idDisplayFormat: 'full',
+          zIndex: 2,
+        },
+        {
           id: 'el-sig1-c',
+          label: 'Left Signatory',
           type: 'text',
           text: 'Program Director\n{{organization}}',
           x: 120,
@@ -463,6 +596,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-sig2-c',
+          label: 'Right Signatory',
           type: 'text',
           text: 'Board of Evaluators\nCertification Committee',
           x: 480,
@@ -482,7 +616,8 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-elegant-black-04',
     name: 'Elegant Black',
-    description: 'Luxurious monochrome theme with obsidian borders, platinum accents, and refined serif typography.',
+    description:
+      'Luxurious monochrome theme with obsidian borders, platinum accents, and refined serif typography.',
     category: 'Classic',
     orientation: 'landscape',
     canvas_width: 800,
@@ -493,9 +628,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#FAF9F6',
       borderStyle: 'elegant_black',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-org-eb',
+          label: 'Organization',
           type: 'text',
           text: '{{organization}}',
           x: 80,
@@ -511,6 +649,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title-eb',
+          label: 'Title',
           type: 'text',
           text: 'CERTIFICATE OF MERIT',
           x: 80,
@@ -526,6 +665,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-intro-eb',
+          label: 'Intro Text',
           type: 'text',
           text: 'Conferred with highest commendations upon',
           x: 80,
@@ -541,6 +681,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-rec-eb',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 60,
@@ -556,6 +697,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-stmt-eb',
+          label: 'Statement',
           type: 'text',
           text: 'for exemplary completion of the professional curriculum in',
           x: 80,
@@ -571,6 +713,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-event-eb',
+          label: 'Event Name',
           type: 'text',
           text: '{{event_name}}',
           x: 80,
@@ -586,6 +729,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-date-eb',
+          label: 'Credential Info',
           type: 'text',
           text: 'Conferred on {{event_date}}  •  Credential ID: {{certificate_id}}',
           x: 80,
@@ -600,6 +744,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-sig-eb',
+          label: 'Signatory',
           type: 'text',
           text: 'Chief Executive Officer\n{{organization}}',
           x: 520,
@@ -619,7 +764,8 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-academic-05',
     name: 'Academic',
-    description: 'Traditional collegiate diploma aesthetic with decree prose, laurel emblems, and vintage warmth.',
+    description:
+      'Traditional collegiate diploma aesthetic with decree prose, laurel emblems, and vintage warmth.',
     category: 'Academic',
     orientation: 'landscape',
     canvas_width: 800,
@@ -630,9 +776,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#FDF8EE',
       borderStyle: 'academic',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-org-ac',
+          label: 'Institution',
           type: 'text',
           text: '{{organization}}',
           x: 70,
@@ -648,6 +797,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title-ac',
+          label: 'Diploma Title',
           type: 'text',
           text: 'DIPLOMA OF ACADEMIC ACHIEVEMENT',
           x: 60,
@@ -663,6 +813,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-be-it',
+          label: 'Proclamation',
           type: 'text',
           text: 'Be it known that by authority of the academic faculty,',
           x: 80,
@@ -678,6 +829,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-rec-ac',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 60,
@@ -693,6 +845,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-has-comp',
+          label: 'Completion Prose',
           type: 'text',
           text: 'has satisfactorily completed all requisite coursework, examinations and standards in',
           x: 80,
@@ -708,6 +861,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-event-ac',
+          label: 'Program Name',
           type: 'text',
           text: '{{event_name}}',
           x: 60,
@@ -723,6 +877,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-date-ac',
+          label: 'Date Conferred',
           type: 'text',
           text: 'Conferred on this {{event_date}} under seal.',
           x: 80,
@@ -738,11 +893,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-meta-ac',
+          label: 'Registry Record ID',
           type: 'text',
           text: 'Registry Record: {{certificate_id}}',
           x: 60,
           y: 490,
-          width: 300,
+          width: 320,
           height: 20,
           fontFamily: 'Courier',
           fontSize: 9,
@@ -752,6 +908,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-sig-dean',
+          label: 'Dean Signatory',
           type: 'text',
           text: 'Dean of Academic Affairs\n{{organization}}',
           x: 510,
@@ -771,7 +928,8 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   {
     id: 'tpl-creative-gradient-06',
     name: 'Creative Gradient',
-    description: 'Vibrant design with energetic violet-fuchsia accents, modern badge geometry, and dynamic layout.',
+    description:
+      'Vibrant design with energetic violet-fuchsia accents, modern badge geometry, and dynamic layout.',
     category: 'Creative',
     orientation: 'landscape',
     canvas_width: 800,
@@ -782,9 +940,12 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
     configuration: {
       background: '#FAFAFA',
       borderStyle: 'creative_gradient',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [
         {
           id: 'el-org-cr',
+          label: 'Organization',
           type: 'text',
           text: '{{organization}}',
           x: 80,
@@ -800,6 +961,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-title-cr',
+          label: 'Title',
           type: 'text',
           text: 'CERTIFICATE OF INNOVATION',
           x: 60,
@@ -815,6 +977,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-intro-cr',
+          label: 'Intro Text',
           type: 'text',
           text: 'Presented for creative vision and accomplishment to',
           x: 80,
@@ -829,6 +992,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-rec-cr',
+          label: 'Recipient Name',
           type: 'text',
           text: '{{recipient_name}}',
           x: 60,
@@ -844,6 +1008,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-stmt-cr',
+          label: 'Statement',
           type: 'text',
           text: 'for breakthrough participation and collaborative impact in',
           x: 80,
@@ -858,6 +1023,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-event-cr',
+          label: 'Event Name',
           type: 'text',
           text: '{{event_name}}',
           x: 60,
@@ -873,6 +1039,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-date-cr',
+          label: 'Verification Info',
           type: 'text',
           text: 'Completed on {{event_date}}  |  Verification: {{certificate_id}}',
           x: 80,
@@ -887,6 +1054,7 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
         },
         {
           id: 'el-sig-cr',
+          label: 'Signatory',
           type: 'text',
           text: 'Creative Director\n{{organization}}',
           x: 520,
@@ -905,61 +1073,19 @@ export const INITIAL_SYSTEM_TEMPLATES: Template[] = [
   },
 ];
 
-const getStoredTemplates = (): Template[] => {
-  try {
-    const raw = localStorage.getItem(TEMPLATES_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(INITIAL_SYSTEM_TEMPLATES));
-      return INITIAL_SYSTEM_TEMPLATES;
-    }
-    return JSON.parse(raw);
-  } catch {
-    return INITIAL_SYSTEM_TEMPLATES;
-  }
-};
-
-const saveStoredTemplates = (templates: Template[]) => {
-  try {
-    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates));
-  } catch (err) {
-    console.error('Failed to save templates cache:', err);
-  }
-};
-
 export const getTemplates = async (category?: string): Promise<Template[]> => {
-  try {
-    const params = category && category !== 'All' ? { category } : {};
-    const res = await apiClient.get<Template[]>('/templates/', { params });
-    if (res.data && res.data.length > 0) {
-      saveStoredTemplates(res.data);
-      return res.data;
-    }
-  } catch (err) {
-    console.warn('Backend templates API unavailable, using local cache:', err);
-  }
-  let list = getStoredTemplates();
-  if (category && category !== 'All') {
-    list = list.filter((t) => t.category.toLowerCase() === category.toLowerCase());
-  }
-  return list;
+  const params = category && category !== 'All' ? { category } : {};
+  const res = await apiClient.get<Template[]>('/templates/', { params });
+  return res.data;
 };
 
 export const getTemplate = async (templateId: string): Promise<Template> => {
-  try {
-    const res = await apiClient.get<Template>(`/templates/${templateId}`);
-    return res.data;
-  } catch (err) {
-    console.warn('Backend template fetch failed, checking local:', err);
-    const list = getStoredTemplates();
-    const found = list.find((t) => t.id === templateId);
-    if (found) return found;
-    throw new Error('Template not found');
-  }
+  const res = await apiClient.get<Template>(`/templates/${templateId}`);
+  return res.data;
 };
 
 export const createTemplate = async (data: Partial<Template>): Promise<Template> => {
-  const newTpl: Template = {
-    id: data.id || `tpl-${Date.now()}`,
+  const payload = {
     name: data.name || 'Untitled Certificate',
     description: data.description || 'Custom user created template',
     category: data.category || 'Corporate',
@@ -968,80 +1094,48 @@ export const createTemplate = async (data: Partial<Template>): Promise<Template>
     canvas_height: data.canvas_height || 566,
     configuration: data.configuration || {
       background: '#FFFFFF',
-      borderStyle: 'none',
+      borderStyle: 'classic_gold',
+      canvas_width: 800,
+      canvas_height: 566,
       elements: [],
     },
-    is_system_template: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   };
-
-  try {
-    const res = await apiClient.post<Template>('/templates/', newTpl);
-    return res.data;
-  } catch {
-    const current = getStoredTemplates();
-    saveStoredTemplates([newTpl, ...current]);
-    return newTpl;
-  }
+  const res = await apiClient.post<Template>('/templates/', payload);
+  return res.data;
 };
 
-export const updateTemplate = async (templateId: string, data: Partial<Template>): Promise<Template> => {
-  try {
-    const res = await apiClient.put<Template>(`/templates/${templateId}`, data);
-    return res.data;
-  } catch {
-    const list = getStoredTemplates().map((t) => {
-      if (t.id === templateId) {
-        return {
-          ...t,
-          ...data,
-          updated_at: new Date().toISOString(),
-        };
-      }
-      return t;
-    });
-    saveStoredTemplates(list);
-    const updated = list.find((t) => t.id === templateId);
-    if (!updated) throw new Error('Template not found');
-    return updated;
-  }
+export const updateTemplate = async (
+  templateId: string,
+  data: Partial<Template>
+): Promise<Template> => {
+  const res = await apiClient.put<Template>(`/templates/${templateId}`, data);
+  return res.data;
 };
 
 export const deleteTemplate = async (templateId: string): Promise<void> => {
-  try {
-    await apiClient.delete(`/templates/${templateId}`);
-  } catch {
-    // Local deletion
-  }
-  const filtered = getStoredTemplates().filter((t) => t.id !== templateId);
-  saveStoredTemplates(filtered);
+  await apiClient.delete(`/templates/${templateId}`);
 };
 
 export const duplicateTemplate = async (templateId: string): Promise<Template> => {
-  try {
-    const res = await apiClient.post<Template>(`/templates/${templateId}/duplicate`);
-    return res.data;
-  } catch {
-    const orig = await getTemplate(templateId);
-    const dup: Template = {
-      ...orig,
-      id: `tpl-${Date.now()}`,
-      name: `${orig.name} Copy`,
-      description: `Duplicate of ${orig.name}`,
-      is_system_template: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    const current = getStoredTemplates();
-    saveStoredTemplates([dup, ...current]);
-    return dup;
-  }
+  const res = await apiClient.post<Template>(`/templates/${templateId}/duplicate`);
+  return res.data;
 };
 
 export const getTemplatePreviewPdfUrl = (templateId: string): string => {
   const base = apiClient.defaults.baseURL || '/api';
   return `${base}/templates/${templateId}/preview`;
+};
+
+export const formatCertificateIdForDisplay = (
+  rawId: string,
+  format: 'full' | 'short' = 'full'
+): string => {
+  if (!rawId) return 'CERT-DEMO-001';
+  if (format === 'short') {
+    const clean = rawId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    return `CERT-${clean.slice(0, 8)}`;
+  }
+  return rawId;
 };
 
 export const replacePlaceholders = (
@@ -1054,15 +1148,22 @@ export const replacePlaceholders = (
     organization?: string;
     certificate_id?: string;
     issue_date?: string;
+  },
+  options?: {
+    idDisplayFormat?: 'full' | 'short';
   }
 ): string => {
   if (!text) return '';
+  const formattedId = formatCertificateIdForDisplay(
+    context.certificate_id || 'CERT-DEMO-001',
+    options?.idDisplayFormat || 'full'
+  );
   return text
     .replace(/\{\{\s*recipient_name\s*\}\}/gi, context.recipient_name || 'Matheesh Kumar')
     .replace(/\{\{\s*recipient_email\s*\}\}/gi, context.recipient_email || 'matheesh@example.com')
     .replace(/\{\{\s*event_name\s*\}\}/gi, context.event_name || 'Python Workshop')
     .replace(/\{\{\s*event_date\s*\}\}/gi, context.event_date || '08 October 2026')
     .replace(/\{\{\s*organization\s*\}\}/gi, context.organization || 'Aereo Learning')
-    .replace(/\{\{\s*certificate_id\s*\}\}/gi, context.certificate_id || 'CERT-DEMO-001')
-    .replace(/\{\{\s*issue_date\s*\}\}/gi, context.issue_date || '08 October 2026');
+    .replace(/\{\{\s*certificate_id\s*\}\}/gi, formattedId)
+    .replace(/\{\{\s*issue_date\s*\}\}/gi, context.issue_date || context.event_date || '08 October 2026');
 };

@@ -17,6 +17,7 @@ import {
 import { getTemplates, createTemplate, duplicateTemplate, deleteTemplate } from '../api/templates';
 import { Template } from '../types';
 import { LoadingState } from '../components/LoadingState';
+import { TemplateCanvas } from '../components/TemplateCanvas';
 import { formatDate } from '../utils/formatters';
 
 export const Templates: React.FC = () => {
@@ -24,6 +25,8 @@ export const Templates: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
 
   // Create Modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -57,14 +60,33 @@ export const Templates: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, isSystem: boolean) => {
-    if (isSystem) {
-      alert('System default templates cannot be deleted directly. Please duplicate it first.');
+  const handleDelete = async (tpl: Template) => {
+    if (tpl.is_system_template) {
+      setNotification({
+        type: 'error',
+        message: 'System default templates cannot be deleted directly. Please duplicate it first.',
+      });
       return;
     }
-    if (window.confirm('Are you sure you want to delete this custom template?')) {
-      await deleteTemplate(id);
+    setTemplateToDelete(tpl);
+  };
+
+  const confirmDeleteTemplate = async () => {
+    if (!templateToDelete) return;
+    try {
+      await deleteTemplate(templateToDelete.id);
+      setNotification({
+        type: 'success',
+        message: `Template "${templateToDelete.name}" deleted successfully.`,
+      });
+      setTemplateToDelete(null);
       await fetchTemplatesList();
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        message: err?.message || 'Failed to delete template.',
+      });
+      setTemplateToDelete(null);
     }
   };
 
@@ -133,6 +155,26 @@ export const Templates: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fadeIn pb-12 max-w-7xl mx-auto">
+      {notification && (
+        <div
+          role="alert"
+          className={`flex items-center justify-between gap-3 p-4 rounded-2xl border text-xs sm:text-sm font-medium shadow-xs ${
+            notification.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              : 'bg-rose-50 border-rose-200 text-rose-900'
+          }`}
+        >
+          <span>{notification.message}</span>
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -183,44 +225,28 @@ export const Templates: React.FC = () => {
               key={tpl.id}
               className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col group"
             >
-              {/* Visual Preview Thumbnail */}
+              {/* Visual Preview Thumbnail using Canonical TemplateCanvas */}
               <div
                 onClick={() => navigate(`/templates/${tpl.id}/edit`)}
-                className="relative aspect-[1.414/1] bg-slate-50 border-b border-slate-100 p-4 flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-slate-100/50 transition-colors"
+                className="relative aspect-[1.414/1] bg-slate-100 border-b border-slate-100 p-3 flex items-center justify-center cursor-pointer overflow-hidden group-hover:bg-slate-200/60 transition-colors"
               >
-                {/* Scaled Mini Mockup */}
                 <div
-                  className="w-full h-full rounded shadow-xs relative flex flex-col justify-between p-3 select-none"
-                  style={{
-                    backgroundColor: tpl.configuration.background || '#FFFFFF',
-                    border: tpl.configuration.borderStyle === 'classic_gold' ? '2px solid #D97706' :
-                            tpl.configuration.borderStyle === 'corporate_blue' ? '2px solid #1E3A8A' :
-                            tpl.configuration.borderStyle === 'modern_minimal' ? '1px solid #0D9488' :
-                            '1px solid #CBD5E1',
-                  }}
+                  className="relative overflow-hidden rounded shadow-xs pointer-events-none"
+                  style={{ width: 280, height: 198 }}
                 >
-                  <div className="text-center pt-1">
-                    <div className="text-[8px] font-bold tracking-wider text-slate-700 uppercase truncate">
-                      {tpl.configuration.elements.find(e => e.id.includes('org'))?.text || 'AEREO LEARNING'}
-                    </div>
-                    <div className="text-[10px] font-bold text-slate-900 uppercase truncate mt-0.5">
-                      {tpl.configuration.elements.find(e => e.id.includes('title'))?.text || 'CERTIFICATE OF PARTICIPATION'}
-                    </div>
-                  </div>
-
-                  <div className="text-center my-auto">
-                    <div className="text-[7px] italic text-slate-400">Presented to</div>
-                    <div className="text-xs font-bold text-indigo-900 truncate">
-                      {'{{recipient_name}}'}
-                    </div>
-                    <div className="text-[8px] text-slate-600 font-medium truncate mt-0.5">
-                      {'{{event_name}}'}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[7px] text-slate-400 pt-1 border-t border-slate-200">
-                    <div>ID: CERT-xxxx</div>
-                    <div className="font-semibold text-slate-600">Authorized Signatory</div>
+                  <div
+                    style={{
+                      transform: 'scale(0.35)',
+                      transformOrigin: 'top left',
+                      width: 800,
+                      height: 566,
+                    }}
+                  >
+                    <TemplateCanvas
+                      config={tpl.configuration}
+                      isPreviewMode={true}
+                      zoom={1}
+                    />
                   </div>
                 </div>
 
@@ -274,7 +300,7 @@ export const Templates: React.FC = () => {
                     </button>
                     {!tpl.is_system_template && (
                       <button
-                        onClick={() => handleDelete(tpl.id, tpl.is_system_template)}
+                        onClick={() => handleDelete(tpl)}
                         className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         title="Delete custom template"
                       >
@@ -294,6 +320,42 @@ export const Templates: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* DELETE CUSTOM TEMPLATE MODAL */}
+      {templateToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-base font-bold text-slate-900">Delete Custom Template</h3>
+              <button
+                onClick={() => setTemplateToDelete(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to delete <strong>{templateToDelete.name}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setTemplateToDelete(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteTemplate}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+              >
+                Delete Template
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

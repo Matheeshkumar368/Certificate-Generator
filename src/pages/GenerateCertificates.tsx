@@ -19,6 +19,7 @@ import { createJob } from '../api/jobs';
 import { getTemplates } from '../api/templates';
 import { Recipient, Template } from '../types';
 import { parseAndValidateCsv, validateEmail, downloadSampleCsv } from '../utils/validation';
+import { TemplateCanvas } from '../components/TemplateCanvas';
 
 export const GenerateCertificates: React.FC = () => {
   const navigate = useNavigate();
@@ -366,45 +367,41 @@ export const GenerateCertificates: React.FC = () => {
               </div>
 
               {/* Dynamic visual preview matching chosen template */}
-              <div
-                className="aspect-[1.414/1] rounded-xl p-4 text-center relative flex flex-col justify-between shadow-md select-none border"
-                style={{
-                  backgroundColor: selectedTemplate?.configuration?.background || '#FCFBF9',
-                  borderColor: selectedTemplate?.configuration?.borderStyle === 'classic_gold' ? '#D97706' :
-                               selectedTemplate?.configuration?.borderStyle === 'corporate_blue' ? '#1E3A8A' :
-                               selectedTemplate?.configuration?.borderStyle === 'modern_minimal' ? '#0D9488' : '#CBD5E1',
-                }}
-              >
-                <div className="pt-1">
-                  <div className="text-[9px] font-bold tracking-widest text-slate-800 uppercase">
-                    {organization || 'AEREO LEARNING'}
+              <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center p-2">
+                {selectedTemplate ? (
+                  <div
+                    className="relative overflow-hidden rounded-lg shadow-xs"
+                    style={{ width: 320, height: 226 }}
+                  >
+                    <div
+                      style={{
+                        transform: 'scale(0.4)',
+                        transformOrigin: 'top left',
+                        width: 800,
+                        height: 566,
+                      }}
+                    >
+                      <TemplateCanvas
+                        config={selectedTemplate.configuration}
+                        isPreviewMode={true}
+                        zoom={1}
+                        sampleContext={{
+                          recipient_name: 'Matheesh Kumar',
+                          recipient_email: 'matheesh@example.com',
+                          event_name: eventName || 'Python Workshop',
+                          event_date: eventDate || '08 Oct 2026',
+                          organization: organization || 'Aereo Learning',
+                          certificate_id: 'CERT-PREVIEW-01',
+                          issue_date: eventDate || '08 Oct 2026',
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="text-[11px] font-serif font-bold uppercase text-slate-900 mt-1">
-                    CERTIFICATE OF PARTICIPATION
+                ) : (
+                  <div className="aspect-[1.414/1] w-full flex items-center justify-center text-xs text-slate-400">
+                    Loading template preview...
                   </div>
-                </div>
-
-                <div className="my-auto py-2">
-                  <div className="text-[8px] italic text-slate-500 font-serif">This is to certify that</div>
-                  <div className="text-sm font-serif font-extrabold text-indigo-950 my-1">
-                    {'{{ Recipient Name }}'}
-                  </div>
-                  <div className="text-[8px] italic text-slate-500 font-serif">has successfully participated in the</div>
-                  <div className="text-xs font-bold text-slate-900 uppercase mt-0.5">
-                    {eventName || '{{ Event Name }}'}
-                  </div>
-                  <div className="text-[8px] text-slate-400 mt-0.5">
-                    on {eventDate || '{{ Event Date }}'}
-                  </div>
-                </div>
-
-                <div className="flex items-end justify-between border-t border-slate-200 pt-1 text-[7px] text-slate-400">
-                  <div>Template: {selectedTemplate?.name || 'Classic'}</div>
-                  <div className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center">
-                    <ShieldCheck className="w-3 h-3" />
-                  </div>
-                  <div>Authorized Signatory</div>
-                </div>
+                )}
               </div>
             </div>
           </div>

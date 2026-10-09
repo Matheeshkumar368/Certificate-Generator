@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Eye, Download, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { Eye, Download, AlertCircle, Loader2, X } from 'lucide-react';
 import { Certificate } from '../types';
 import { StatusBadge } from './StatusBadge';
 import { formatDateTime } from '../utils/formatters';
-import { downloadClientGeneratedPdf, getCertificatePdfUrl } from '../api/certificates';
+import { downloadCertificatePdf } from '../api/certificates';
 
 interface CertificateTableProps {
   certificates: Certificate[];
@@ -15,22 +15,28 @@ interface CertificateTableProps {
 
 export const CertificateTable: React.FC<CertificateTableProps> = ({
   certificates,
-  eventName,
-  eventDate,
-  organization,
   onPreview,
 }) => {
-  const [selectedError, setSelectedError] = useState<{ name: string; error: string } | null>(null);
+  const [selectedError, setSelectedError] = useState<{
+    title: string;
+    name: string;
+    error: string;
+  } | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const handleDownload = (cert: Certificate) => {
-    const downloadUrl = getCertificatePdfUrl(cert.id, true);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    const safeName = cert.recipient_name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'certificate';
-    link.download = `Certificate_${safeName}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (cert: Certificate) => {
+    setDownloadingId(cert.id);
+    try {
+      await downloadCertificatePdf(cert);
+    } catch (err: any) {
+      setSelectedError({
+        title: 'Certificate Download Error',
+        name: cert.recipient_name,
+        error: err?.message || 'Failed to download certificate PDF from server.',
+      });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
@@ -48,63 +54,70 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {certificates.map((cert, index) => (
-              <tr
-                key={cert.id}
-                className="hover:bg-slate-50/60 transition-colors"
-              >
-                <td className="py-3 px-4 text-center text-xs font-mono text-slate-400">
-                  {index + 1}
-                </td>
-                <td className="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
-                  {cert.recipient_name}
-                </td>
-                <td className="py-3 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">
-                  {cert.recipient_email}
-                </td>
-                <td className="py-3 px-4 whitespace-nowrap">
-                  <StatusBadge status={cert.status} />
-                </td>
-                <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
-                  {cert.status === 'GENERATED' ? formatDateTime(cert.created_at) : '—'}
-                </td>
-                <td className="py-3 px-4 text-right whitespace-nowrap space-x-2">
-                  {cert.status === 'GENERATED' ? (
-                    <>
+            {certificates.map((cert, index) => {
+              const isDownloading = downloadingId === cert.id;
+              return (
+                <tr key={cert.id} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-3 px-4 text-center text-xs font-mono text-slate-400">
+                    {index + 1}
+                  </td>
+                  <td className="py-3 px-4 font-semibold text-slate-900 whitespace-nowrap">
+                    {cert.recipient_name}
+                  </td>
+                  <td className="py-3 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">
+                    {cert.recipient_email}
+                  </td>
+                  <td className="py-3 px-4 whitespace-nowrap">
+                    <StatusBadge status={cert.status} />
+                  </td>
+                  <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
+                    {cert.status === 'GENERATED' ? formatDateTime(cert.created_at) : '—'}
+                  </td>
+                  <td className="py-3 px-4 text-right whitespace-nowrap space-x-2">
+                    {cert.status === 'GENERATED' ? (
+                      <>
+                        <button
+                          onClick={() => onPreview(cert)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View</span>
+                        </button>
+                        <button
+                          onClick={() => handleDownload(cert)}
+                          disabled={isDownloading}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-60 border border-indigo-200/60 transition-colors"
+                        >
+                          {isDownloading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Download className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isDownloading ? 'Downloading...' : 'Download'}</span>
+                        </button>
+                      </>
+                    ) : cert.status === 'FAILED' ? (
                       <button
-                        onClick={() => onPreview(cert)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors"
+                        onClick={() =>
+                          setSelectedError({
+                            title: 'Certificate Generation Error',
+                            name: cert.recipient_name,
+                            error:
+                              cert.error_message || 'Validation error: invalid email format.',
+                          })
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
                       >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View</span>
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                        <span>View Error</span>
                       </button>
-                      <button
-                        onClick={() => handleDownload(cert)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Download</span>
-                      </button>
-                    </>
-                  ) : cert.status === 'FAILED' ? (
-                    <button
-                      onClick={() =>
-                        setSelectedError({
-                          name: cert.recipient_name,
-                          error: cert.error_message || 'Validation error: invalid email format.',
-                        })
-                      }
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                      <span>View Error</span>
-                    </button>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">Processing...</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">Processing...</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -116,7 +129,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
                 <AlertCircle className="w-5 h-5" />
-                <span>Certificate Generation Error</span>
+                <span>{selectedError.title}</span>
               </div>
               <button
                 onClick={() => setSelectedError(null)}
@@ -128,8 +141,8 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
             <div className="py-4 space-y-2">
               <div className="text-xs text-slate-500 font-medium">Recipient:</div>
               <div className="text-sm font-semibold text-slate-900">{selectedError.name}</div>
-              <div className="text-xs text-slate-500 font-medium pt-2">Reason:</div>
-              <div className="p-3 bg-rose-50 text-rose-800 text-xs font-mono rounded-xl border border-rose-100">
+              <div className="text-xs text-slate-500 font-medium pt-2">Details:</div>
+              <div className="p-3 bg-rose-50 text-rose-800 text-xs font-mono rounded-xl border border-rose-100 break-words">
                 {selectedError.error}
               </div>
             </div>
