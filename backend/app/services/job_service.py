@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc
 
 from backend.app.db.models import GenerationJob, Certificate, Template
+from backend.app.db.database import CERTIFICATES_DIR
 from backend.app.schemas.job import JobCreate, JobStatsResponse
 from backend.app.utils.file_utils import validate_email_format
 from backend.app.services.certificate_generator import generate_certificate_pdf
@@ -132,6 +133,51 @@ def process_job_certificates(job_id: str, db: Session, delay_seconds: float = 0.
 
 def get_job(db: Session, job_id: str) -> Optional[GenerationJob]:
     return db.query(GenerationJob).filter(GenerationJob.id == job_id).first()
+
+
+def delete_job(db: Session, job_id: str) -> Optional[dict]:
+    job = db.query(GenerationJob).filter(GenerationJob.id == job_id).first()
+    if not job:
+        return None
+
+    if job.status in ("PROCESSING", "PENDING"):
+        raise ValueError("Cannot delete a job that is currently pending or processing. Please wait for generation to complete.")
+
+    certificates = db.query(Certificate).filter(Certificate.job_id == job_id).all()
+    deleted_files = 0
+
+    real_cert_dir = os.path.realpath(CERTIFICATES_DIR)
+
+    for cert in certificates:
+        candidate_paths = []
+        if cert.file_path:
+            candidate_paths.append(cert.file_path)
+        canonical_path = os.path.join(CERTIFICATES_DIR, f"certificate_{cert.id}.pdf")
+        if canonical_path not in candidate_paths:
+            candidate_paths.append(canonical_path)
+
+        for p in candidate_paths:
+            try:
+                real_p = os.path.realpath(p)
+                # Restrict strictly to files inside CERTIFICATES_DIR to avoid arbitrary path deletion
+                if real_p.startswith(real_cert_dir) and os.path.isfile(real_p):
+                    os.remove(real_p)
+                    deleted_files += 1
+            except Exception as e:
+                print(f"Warning: could not delete file {p}: {e}")
+
+    cert_count = len(certificates)
+    event_name = job.event_name
+    db.delete(job)
+    db.commit()
+
+    return {
+        "success": True,
+        "id": job_id,
+        "event_name": event_name,
+        "deleted_certificates": cert_count,
+        "deleted_files": deleted_files
+    }
 
 
 def get_jobs(

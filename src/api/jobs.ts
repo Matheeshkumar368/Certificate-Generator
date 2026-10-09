@@ -244,3 +244,39 @@ export const getStats = async (): Promise<OverallStats> => {
     };
   }
 };
+
+export const deleteJob = async (
+  jobId: string
+): Promise<{ success: boolean; id: string; deleted_certificates?: number; event_name?: string }> => {
+  try {
+    const response = await apiClient.delete<{
+      success: boolean;
+      id: string;
+      deleted_certificates?: number;
+      event_name?: string;
+    }>(`/jobs/${jobId}`);
+
+    // If local cache exists, update it to stay in sync with the backend
+    try {
+      const current = getLocalJobs();
+      saveLocalJobs(current.filter(j => j.id !== jobId));
+    } catch {
+      // Ignore local storage sync error
+    }
+
+    return response.data;
+  } catch (err: any) {
+    // Visibly report backend error details or network failure
+    if (err.response?.data?.detail) {
+      throw new Error(err.response.data.detail);
+    }
+    if (err.response?.status) {
+      throw new Error(`Server returned error ${err.response.status}: ${err.response.statusText || 'Deletion failed'}`);
+    }
+    if (err.message) {
+      throw new Error(`Connection error: ${err.message}`);
+    }
+    throw new Error('Failed to delete generation job on server.');
+  }
+};
+

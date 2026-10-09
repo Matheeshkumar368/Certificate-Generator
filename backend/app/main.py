@@ -12,6 +12,14 @@ from backend.app.services.template_service import seed_templates_if_empty
 # Create SQLite database tables
 Base.metadata.create_all(bind=engine)
 
+# Seed on import to ensure test clients and workers have default templates & demo data
+_init_db = next(get_db())
+try:
+    seed_templates_if_empty(_init_db)
+    seed_demo_data_if_empty(_init_db)
+finally:
+    _init_db.close()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

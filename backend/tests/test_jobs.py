@@ -78,3 +78,121 @@ def test_get_stats():
     assert "total_jobs" in stats
     assert "total_certificates" in stats
     assert stats["total_jobs"] >= 1
+
+
+def test_delete_nonexistent_job():
+    response = client.delete("/api/jobs/non-existent-uuid-9999")
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+
+def test_delete_pending_or_processing_job_rejected():
+    db = SessionLocal()
+    job_id = "test-pending-job-uuid-123"
+    try:
+        pending_job = GenerationJob(
+            id=job_id,
+            event_name="Active Ongoing Session",
+            event_date="09 Oct 2026",
+            organization="Aereo Learning",
+            total_recipients=5,
+            successful_count=0,
+            failed_count=0,
+            status="PROCESSING"
+        )
+        db.add(pending_job)
+        db.commit()
+    finally:
+        db.close()
+
+    # Attempt deletion while PROCESSING
+    response = client.delete(f"/api/jobs/{job_id}")
+    assert response.status_code == 400
+    assert "cannot delete" in response.json()["detail"].lower()
+
+    # Verify job still exists in DB
+    db = SessionLocal()
+    try:
+        still_there = db.query(GenerationJob).filter(GenerationJob.id == job_id).first()
+        assert still_there is not None
+        # Clean up test object
+        db.delete(still_there)
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_delete_job_success_and_cleanup():
+    import os
+    # 1. Create Job A to delete
+    res_a = client.post("/api/jobs/", json={
+        "event_name": "Job A To Delete",
+        "event_date": "15 Oct 2026",
+        "organization=" : "Aereo Learning",
+        "recipients": [
+            {"name": "Delete Target 1", "email": "target1@example.com"},
+            {"name": "Delete Target 2", "email": "target2@example.com"}
+        ]
+    })
+    assert res_a.status_code == 201
+    job_a_id = res_a.json()["id"]
+
+    # 2. Create Job B that should NOT be deleted
+    res_b = client.post("/api/jobs/", json={
+        "event_name": "Job B Keep Safe",
+        "event_date": "16 Oct 2026",
+        "organization": "Aereo Learning",
+        "recipients": [
+            {"name": "Safe User", "email": "safe@example.com"}
+        ]
+    })
+    assert res_b.status_code == 201
+    job_b_id = res_b.json()["id"]
+
+    # Process certificates for both jobs synchronously
+    db = SessionLocal()
+    cert_a_files = []
+    try:
+        process_job_certificates(job_a_id, db, delay_seconds=0)
+        process_job_certificates(job_b_id, db, delay_seconds=0)
+
+        certs_a = db.query(Certificate).filter(Certificate.job_id == job_a_id).all()
+        assert len(certs_a) == 2
+        for c in certs_a:
+            if c.file_path and os.path.isfile(c.file_path):
+                cert_a_files.append(c.file_path)
+
+        assert len(cert_a_files) >= 1, "At least one certificate PDF file was generated for Job A"
+    finally:
+        db.close()
+
+    # 3. Delete Job A via API
+    del_res = client.delete(f"/api/jobs/{job_a_id}")
+    assert del_res.status_code == 200
+    del_data = del_res.json()
+    assert del_data["success"] is True
+    assert del_data["id"] == job_a_id
+
+    # 4. Verify Job A no longer exists (404)
+    get_a = client.get(f"/api/jobs/{job_a_id}")
+    assert get_a.status_code == 404
+
+    # 5. Verify Job A certificates are cleaned up from DB
+    db = SessionLocal()
+    try:
+        orphan_certs = db.query(Certificate).filter(Certificate.job_id == job_a_id).all()
+        assert len(orphan_certs) == 0
+
+        # 6. Verify Job A generated PDF files are deleted from disk
+        for file_p in cert_a_files:
+            assert not os.path.exists(file_p), f"Generated certificate file {file_p} should be deleted"
+
+        # 7. Verify Job B and its certificates remain untouched
+        job_b = db.query(GenerationJob).filter(GenerationJob.id == job_b_id).first()
+        assert job_b is not None
+        assert job_b.event_name == "Job B Keep Safe"
+        certs_b = db.query(Certificate).filter(Certificate.job_id == job_b_id).all()
+        assert len(certs_b) == 1
+    finally:
+        db.close()
+

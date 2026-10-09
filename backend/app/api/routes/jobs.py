@@ -9,6 +9,7 @@ from backend.app.services.job_service import (
     create_job,
     process_job_certificates,
     get_job,
+    delete_job,
     get_jobs,
     get_job_certificates,
     get_overall_stats
@@ -87,3 +88,28 @@ def get_certificates_for_job(job_id: str, db: Session = Depends(get_db)):
     if not job:
         raise HTTPException(status_code=404, detail="Generation job not found.")
     return get_job_certificates(db, job_id)
+
+
+@router.delete("/{job_id}", status_code=200)
+def delete_generation_job(job_id: str, db: Session = Depends(get_db)):
+    job = get_job(db, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Generation job not found.")
+
+    if job.status in ("PROCESSING", "PENDING"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete a job that is currently pending or processing. Please wait for certificate generation to finish."
+        )
+
+    try:
+        result = delete_job(db, job_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="Generation job not found.")
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete job: {str(e)}")
+
