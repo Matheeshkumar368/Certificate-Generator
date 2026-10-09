@@ -23,12 +23,14 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
   const [selectedError, setSelectedError] = useState<{ name: string; error: string } | null>(null);
 
   const handleDownload = (cert: Certificate) => {
-    // Attempt backend download; also trigger vector PNG/PDF download fallback
     const downloadUrl = getCertificatePdfUrl(cert.id, true);
-    const win = window.open(downloadUrl, '_blank');
-    if (!win) {
-      downloadClientGeneratedPdf(cert, eventName, eventDate, organization);
-    }
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    const safeName = cert.recipient_name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'certificate';
+    link.download = `Certificate_${safeName}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (

@@ -29,12 +29,14 @@ export const CertificatePreview: React.FC<CertificatePreviewProps> = ({
   };
 
   const handleDownload = () => {
-    // Attempt backend download; also provide client rendering fallback
     const downloadUrl = getCertificatePdfUrl(certificate.id, true);
-    const win = window.open(downloadUrl, '_blank');
-    if (!win) {
-      downloadClientGeneratedPdf(certificate, eventName, eventDate, organization);
-    }
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    const safeName = certificate.recipient_name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'certificate';
+    link.download = `Certificate_${safeName}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
