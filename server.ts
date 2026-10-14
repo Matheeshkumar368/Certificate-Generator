@@ -1367,7 +1367,7 @@ export function createApp() {
 
 async function startServer() {
   const app = createApp();
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || '3000', 10);
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

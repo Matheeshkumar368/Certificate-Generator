@@ -13,6 +13,8 @@ A modern full-stack certificate generation platform built for organizations to c
 <br/>
 
 ![CertificateFlow](https://img.shields.io/badge/CertificateFlow-Bulk%20Certificate%20Generator-6366F1?style=for-the-badge&logo=google-scholar&logoColor=white)
+<br/>
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-certificateflow--smk.ai.studio-7C3AED?style=for-the-badge&logo=google-chrome&logoColor=white)](https://certificateflow-smk.ai.studio)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
@@ -588,7 +590,7 @@ Certificate-Generator/
 │   └── ...
 │
 ├── assets/
-│   └── certificateflow-readme-banner-fixed.gif
+│   └── certificateflow-readme-banner.gif
 │
 ├── .env.example
 ├── .gitignore
